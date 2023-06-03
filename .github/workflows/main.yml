@@ -44,6 +44,7 @@ jobs:
           with:
             push: true
             tags: alekseevpy/sprint_17:latest 
+          
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
@@ -54,8 +55,19 @@ jobs:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.PASSPHRASE }} # Press F
+        passphrase: ${{ secrets.PASSPHRASE }}
         script: |
           sudo docker pull alekseevpy/sprint_17:latest
           sudo docker stop $(sudo docker ps -a -q)
           sudo docker run --rm -d -p 5000:5000 alekseevpy/sprint_17:latest
+
+  send_message:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+    - name: send message
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: ${{ github.workflow }} успешно выполнен! 
